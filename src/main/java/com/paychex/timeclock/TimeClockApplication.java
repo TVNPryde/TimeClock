@@ -1,4 +1,4 @@
-package java.com.paychex.timeclock;
+package com.paychex.timeclock;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

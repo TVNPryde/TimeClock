@@ -1,8 +1,10 @@
-package java.com.paychex.timeclock.repository;
+package com.paychex.timeclock.repository;
 
-import java.com.paychex.timeclock.core.Break;
-import java.com.paychex.timeclock.core.Shift;
-import java.com.paychex.timeclock.core.User;
+import com.paychex.timeclock.core.Break;
+import com.paychex.timeclock.core.Shift;
+import com.paychex.timeclock.core.User;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +18,8 @@ public class InMemoryRepository {
 
     private InMemoryRepository() {
         this.userTable = new ConcurrentHashMap<>();
+        User initialUser = User.builder().name("Thanh").id(1).admin(true).build();
+        this.userTable.put(initialUser.getId(), initialUser);
 
         this.shiftTable = new ConcurrentHashMap<>();
         this.breakTable = new ConcurrentHashMap<>();
@@ -26,6 +30,10 @@ public class InMemoryRepository {
             repository = new InMemoryRepository();
 
         return repository;
+    }
+
+    public long getNextUserId() {
+        return userTable.size() + 1;
     }
 
     public List<User> findAllUsers() {
@@ -42,26 +50,58 @@ public class InMemoryRepository {
     }
 
     public Shift findActiveShift(long id) {
-        return shiftTable.get(id).stream()
+        if (shiftTable.containsKey(id))
+            return shiftTable.get(id).stream()
                 .filter(shift -> shift.getEndTime() == null).findFirst().orElse(null);
+
+        return null;
     }
 
     public Shift save(Shift shift) {
         List<Shift> userShifts = shiftTable.get(shift.getEmployee().getId());
-        userShifts.add(shift);
+        if (userShifts == null)
+            userShifts = new ArrayList<>();
+
+        Optional<Shift> exist = userShifts.stream().filter(s -> s.getUuid().equals(shift.getUuid())).findFirst();
+        if (exist.isPresent()) {
+            exist.get().setEndTime(shift.getEndTime());
+            exist.get().setUpdatedBy(shift.getUpdatedBy());
+        } else {
+            userShifts.add(shift);
+        }
         shiftTable.put(shift.getEmployee().getId(), userShifts);
         return userShifts.get(userShifts.size() - 1);
     }
 
     public Break findActiveBreak(long id) {
-        return breakTable.get(id).stream()
+        if (breakTable.containsKey(id))
+            return breakTable.get(id).stream()
                 .filter(b -> b.getEndTime() == null).findFirst().orElse(null);
+
+        return null;
     }
 
     public Break save(Break b) {
         List<Break> userBreaks =  breakTable.get(b.getEmployee().getId());
-        userBreaks.add(b);
+        if (userBreaks == null)
+            userBreaks = new ArrayList<>();
+
+        Optional<Break> exist = userBreaks.stream().filter(br -> br.getUuid().equals(b.getUuid())).findFirst();
+        if (exist.isPresent()) {
+            exist.get().setEndTime(b.getEndTime());
+            exist.get().setUpdatedBy(b.getUpdatedBy());
+        } else {
+            userBreaks.add(b);
+        }
         breakTable.put(b.getEmployee().getId(), userBreaks);
         return userBreaks.get(userBreaks.size() - 1);
+    }
+
+    public List<Shift> getUserShiftReport(long id) {
+        return shiftTable.get(id);
+    }
+
+    public List<Break> getUserBreakReport(long id) {
+        return breakTable.get(id);
     }
 }

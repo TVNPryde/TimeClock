@@ -1,14 +1,12 @@
-package java.com.paychex.timeclock.core;
+package com.paychex.timeclock.core;
 
+import lombok.Builder;
 import lombok.Data;
 
+@Builder
 @Data
 public class User {
     long id;
     String name;
-    UserType privelige;
-
-    public boolean isAdmin() {
-        return this.privelige == UserType.ADMIN;
-    }
+    boolean admin;
 }

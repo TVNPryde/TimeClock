@@ -1,17 +1,24 @@
-package java.com.paychex.timeclock.controller;
+package com.paychex.timeclock.controller;
 
+import com.paychex.timeclock.core.User;
+import com.paychex.timeclock.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.com.paychex.timeclock.core.User;
-import java.com.paychex.timeclock.service.UserService;
 import java.util.List;
 
 @RequestMapping("/user")
 @RestController
+@RequiredArgsConstructor
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<User> signup(@RequestBody String name) {
+        return ResponseEntity.ok(userService.signup(name));
+    }
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
@@ -23,8 +30,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(id));
     }
 
-    @PostMapping
-    public ResponseEntity<User> saveUser(@RequestBody() User user) {
+    @PostMapping()
+    public ResponseEntity<User> saveUser(@RequestBody User user) {
         return ResponseEntity.ok(userService.saveUser(user));
     }
 }
